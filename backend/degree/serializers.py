@@ -12,15 +12,15 @@ from degree.models import (
 
 
 class DegreeRequirementSerializer(serializers.ModelSerializer):
-    courses = serializers.SlugRelatedField(
-        slug_field='full_code',
+    topics = serializers.SlugRelatedField(
+        slug_field='most_recent__full_code',
         many=True,
         read_only=True,
     )
 
     class Meta:
         model = DegreeRequirement
-        fields = ("id", "name", "num_courses", "num_credits", "inclusive", "courses")
+        fields = ("id", "name", "num", "satisfied_by", "topics")
 
 
 class DegreeSerializer(serializers.ModelSerializer):

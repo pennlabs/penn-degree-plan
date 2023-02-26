@@ -23,19 +23,16 @@ class DegreeRequirementAdmin(admin.ModelAdmin):
     readonly_fields = (
         "id",
     )
-    search_fields = (
-        # "name",
-        # "satisfied_by",
-        # "topics",
-        # "num",
-        # "degree",
+    raw_id_fields = (
+        "topics",
     )
-    list_filter = [
-        # "name",
-        # "satisfied_by",
+    search_fields = (
+        "name",
+        "satisfied_by",
         # "topics",
-        # "num",
-    ]
+        "num",
+        "degree",
+    )
     list_display = (
         "id",
     )

@@ -26,16 +26,6 @@ class Degree(models.Model):
         """
         )
     )
-    degree_requirements = models.ManyToManyField(
-        "DegreeRequirement",
-        related_name="requirements",
-        default=None,
-        help_text=dedent(
-            """
-        The requirements needed to satisfy this degree.
-        """
-        ),
-    )
     def __str__(self):
         return "Name: %s, Degree ID: %s" % (self.name, self.id)
 
@@ -45,18 +35,21 @@ class DegreeRequirement(models.Model):
     This model represents a degree requirement as a recursive tree.
     """
     SATISFIED_BY = (
-        ("ALL", "Not an actual satisfied by mode: represented by NUM_COURSES where num = number of courses. Must "
-                "take all courses to satisfy requirements"),
-        ("ANY", "Not an actual satisfied by mode: represented by NUM_COURSES where num = 1. Can take any course to "
-                "satisfy requirements."),
+        ("ALL", "Must take all courses to satisfy requirements"),
+        # ("ANY", "Not an actual satisfied by mode: represented by NUM_COURSES where num = 1. Can take any course to "
+        #         "satisfy requirements."),
         ("CUS", "Must take courses with total number of CUs to satisfy requirements"),
         ("NUM_COURSES", "Must take a certain number of courses to satisfy requirements"),
+        ("AND", "Contains a list of sub-requirements. Must take all sub-requirements to satisfy requirements"),
+        ("OR", "Contains a list of sub-requirements. Can take any sub-requirement to satisfy requirements"),
     )
 
     class SatisfiedBy(models.IntegerChoices):
         ALL = 1
         CUS = 2
         NUM_COURSES = 3
+        AND = 4
+        OR = 5
 
     name = models.TextField(
         help_text=dedent(
@@ -77,16 +70,17 @@ class DegreeRequirement(models.Model):
             + string_dict_to_html(dict(SATISFIED_BY))
         ),
     )
-    q = models.TextField(
-        max_length=1000,
-        null=True,
-        help_text=dedent(
-            """
-        Used to store more complex & larger query sets using the same interface as Q() objects. Not null if and only iff
-        courses is blank/empty.
-        """
-        )
-    )
+    # q = models.TextField(
+    #     max_length=1000,
+    #     null=True,
+    #     help_text=dedent(
+    #         """
+    #     Used to store more complex & larger query sets using the same interface as Q() objects. Not null if and only iff
+    #     courses is blank/empty.
+    #     """
+    #     )
+    # )
+
     topics = models.ManyToManyField(
         Topic,
         related_name="requirements",
@@ -97,6 +91,7 @@ class DegreeRequirement(models.Model):
             """
         ),
     )
+
     num = models.IntegerField(
         null=True,
         help_text=dedent(
@@ -121,7 +116,7 @@ class DegreeRequirement(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.name} @ {self.topics} - {self.cus}"
+        return f"{self.name} @ {self.topics} - {self.num}"
 
     def fulfills(self, course):
         return self.topics.all().contains(course.topic)
