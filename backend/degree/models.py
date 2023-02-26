@@ -36,18 +36,16 @@ class DegreeRequirement(models.Model):
     """
     SATISFIED_BY = (
         ("ALL", "Must take all courses to satisfy requirements"),
-        # ("ANY", "Not an actual satisfied by mode: represented by NUM_COURSES where num = 1. Can take any course to "
-        #         "satisfy requirements."),
+        ("ANY", "Can take any course to satisfy requirements."),
         ("CUS", "Must take courses with total number of CUs to satisfy requirements"),
-        ("NUM_COURSES", "Must take a certain number of courses to satisfy requirements"),
         ("AND", "Contains a list of sub-requirements. Must take all sub-requirements to satisfy requirements"),
         ("OR", "Contains a list of sub-requirements. Can take any sub-requirement to satisfy requirements"),
     )
 
     class SatisfiedBy(models.IntegerChoices):
         ALL = 1
-        CUS = 2
-        NUM_COURSES = 3
+        ANY = 2
+        CUS = 3
         AND = 4
         OR = 5
 
@@ -96,7 +94,7 @@ class DegreeRequirement(models.Model):
         null=True,
         help_text=dedent(
             """
-        The number of CUs or Courses required to satisfy this requirement
+        The number of CUs required to satisfy this requirement
         """
         ),
     )
