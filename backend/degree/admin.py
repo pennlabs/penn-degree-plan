@@ -29,8 +29,6 @@ class DegreeRequirementAdmin(admin.ModelAdmin):
     search_fields = (
         "name",
         "satisfied_by",
-        # "topics",
-        "num",
         "degree",
     )
     list_display = (
