@@ -12,8 +12,7 @@ from degree.models import (
 
 
 class DegreeRequirementSerializer(serializers.ModelSerializer):
-    topics = serializers.SlugRelatedField(
-        slug_field='most_recent__full_code',
+    topics = serializers.StringRelatedField(
         many=True,
         read_only=True,
     )
