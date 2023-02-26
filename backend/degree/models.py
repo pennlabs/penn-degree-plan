@@ -35,11 +35,11 @@ class DegreeRequirement(models.Model):
     This model represents a degree requirement as a recursive tree.
     """
     SATISFIED_BY = (
-        ("ALL", "Must take all courses to satisfy requirements"),
-        ("ANY", "Can take any course to satisfy requirements."),
+        ("ALL", "Must take all courses to satisfy requirements. If this option is selected, the list of subrequirements will be empty."),
+        ("ANY", "Can take any course to satisfy requirements. If this option is selected, the list of subrequirements will be empty."),
         ("CUS", "Must take courses with total number of CUs to satisfy requirements"),
-        ("AND", "Contains a list of sub-requirements. Must take all sub-requirements to satisfy requirements"),
-        ("OR", "Contains a list of sub-requirements. Can take any sub-requirement to satisfy requirements"),
+        ("AND", "Contains a list of sub-requirements. Must take all sub-requirements to satisfy requirements. If this option is selected, the list of topics will be empty."),
+        ("OR", "Contains a list of sub-requirements. Can take any sub-requirement to satisfy requirements. If this option is selected, the list of topics will be empty."),
     )
 
     class SatisfiedBy(models.IntegerChoices):
