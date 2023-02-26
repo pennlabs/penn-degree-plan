@@ -68,16 +68,17 @@ class DegreeRequirement(models.Model):
             + string_dict_to_html(dict(SATISFIED_BY))
         ),
     )
-    # q = models.TextField(
-    #     max_length=1000,
-    #     null=True,
-    #     help_text=dedent(
-    #         """
-    #     Used to store more complex & larger query sets using the same interface as Q() objects. Not null if and only iff
-    #     courses is blank/empty.
-    #     """
-    #     )
-    # )
+
+    subrequirements = models.ManyToManyField(
+        "self",
+        related_name="parent_requirements",
+        blank=True,
+        help_text=dedent(
+            """
+            The subrequirements of this requirement.  This is a list of DegreeRequirement objects.
+            """
+        ),
+    )
 
     topics = models.ManyToManyField(
         Topic,
@@ -114,7 +115,20 @@ class DegreeRequirement(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.name} @ {self.topics} - {self.num}"
+        satisfied_by_text = ""
+        match self.satisfied_by:
+            case self.SatisfiedBy.ALL:
+                satisfied_by_text = "ALL"
+            case self.SatisfiedBy.ANY:
+                satisfied_by_text = "ANY"
+            case self.SatisfiedBy.CUS:
+                satisfied_by_text = f"CUS ({self.num})"
+            case self.SatisfiedBy.AND:
+                satisfied_by_text = "AND"
+            case self.SatisfiedBy.OR:
+                satisfied_by_text = "OR"
+
+        return f"{self.name} @ {self.topics} - {self.num} (satisfied by {satisfied_by_text})"
 
     def fulfills(self, course):
         return self.topics.all().contains(course.topic)
