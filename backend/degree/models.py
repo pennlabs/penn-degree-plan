@@ -26,7 +26,16 @@ class Degree(models.Model):
         """
         )
     )
-
+    degree_requirements = models.ManyToManyField(
+        "DegreeRequirement",
+        related_name="requirements",
+        default=None,
+        help_text=dedent(
+            """
+        The requirements needed to satisfy this degree.
+        """
+        ),
+    )
     def __str__(self):
         return "Name: %s, Degree ID: %s" % (self.name, self.id)
 

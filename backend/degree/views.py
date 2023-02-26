@@ -60,7 +60,7 @@ class DegreeDetail(generics.RetrieveAPIView):
     serializer_class = DegreeSerializer # TODO: have a DegreeSerializer and DegreeListSerializer
     lookup_field = "full_code"
 
-    # TODO: Actually include requirement data
     def get_queryset(self):
-        queryset = Degree.all()
+        queryset = Degree.all().prefetch_related("requirements")
+        
         return queryset
