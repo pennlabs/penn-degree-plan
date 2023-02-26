@@ -108,7 +108,7 @@ class DegreeRequirement(models.Model):
         """
         ),
     )
-    created_at = models.DateTimeField(auto_now_add=True) # TODO: do we need these fields?
+    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -228,6 +228,7 @@ class DegreePlan(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     notes = models.TextField(
+        default="",
         help_text=dedent(
             """
         Used to store any notes about the degree (for instance, the superscript notes on Penn's Catalog)

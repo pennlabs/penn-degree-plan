@@ -4,16 +4,14 @@ from PennCourses.docs_settings import PcxAutoSchema, reverse_func
 
 from degree.models import (
     Degree,
-    # DegreeRequirement,
     # DegreeFulfillment,
-    # DegreePlan
+    DegreePlan
 )
 
 from degree.serializers import (
     DegreeSerializer,
-    # DegreePlanSerializer,
+    DegreePlanSerializer,
     # DegreeFulfillmentSerializer,
-    # DegreeRequirementSerializer
 )
 
 # Create your views here.
@@ -35,7 +33,8 @@ class DegreeList(generics.ListAPIView):
 
     # TODO: Actually return a list of possible degrees
     def get_queryset(self):
-        queryset = Degree.filter()
+        # TODO: Incorporate degree requirements somehow
+        queryset = Degree.objects.all()
         return queryset
 
 class DegreeListSearch(DegreeList):
