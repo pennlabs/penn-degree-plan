@@ -1,0 +1,35 @@
+version: "3"
+
+services:
+  db:
+    image: postgres
+    command: postgres
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=penn-courses
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres:/var/lib/postgresql/pgdata
+  redis:
+    image: redis:4.0
+    ports:
+      - "6379:6379"
+  development:
+    depends_on:
+      - db
+      - redis
+    profiles:
+      - dev
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/backend
+    environment:
+      - REDIS_URL=redis://redis:6379/1
+      - DATABASE_URL=postgres://penn-courses:postgres@db:5432/postgres
+    command: pipenv run python manage.py runserver 0.0.0.0:8000
