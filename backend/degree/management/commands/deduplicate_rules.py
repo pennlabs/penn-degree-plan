@@ -57,8 +57,8 @@ def deduplicate_rules(verbose=False):
         if len(rule_ids) > 1:
             Rule.objects.filter(parent_id__in=rule_ids[1:]).update(parent_id=rule_ids[0])
             for degree in Degree.objects.filter(rules__in=rule_ids[1:]):
-                degree.rules.add(rule_ids[0])
-                degree.rules.remove(*rule_ids[1:])
+                degree.all_rules.add(rule_ids[0])
+                degree.all_rules.remove(*rule_ids[1:])
             deleted, _ = Rule.objects.filter(id__in=rule_ids[1:]).delete()
             delete_count += deleted
 

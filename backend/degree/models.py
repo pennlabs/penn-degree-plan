@@ -28,6 +28,10 @@ program_code_to_name = dict(program_choices)
 class Degree(models.Model):
     """
     This model represents a degree for a specific year.
+
+    The `rule` field stores a rule tree for this degree, where each rule has subrules
+    and so on. The `all_rules` field stores all the rules that make up this degree,
+    including the nested rules.
     """
 
     program = models.CharField(
@@ -71,13 +75,28 @@ class Degree(models.Model):
             """
         )
     )
-    rules = models.ManyToManyField(
+
+    rule = models.ForeignKey(
+        "Rule",
+        on_delete=models.CASCADE,
+        related_name="degree",
+        blank=True,
+        help_text=dedent(
+            """
+            The root rule associated with this degree.
+            """
+        ),
+    )
+
+    all_rules = models.ManyToManyField(
         "Rule",
         related_name="degrees",
         blank=True,
         help_text=dedent(
             """
-            The rules for this degree. Blank if this degree has no rules.
+            All the rules that make up this degree, including nested rules.
+
+            This field must be updated when there is a change to the rule tree.
             """
         ),
     )
@@ -98,9 +117,9 @@ class Rule(models.Model):
     """
     This model represents a degree requirement rule.
 
-    Rules are deduplicated, meaning that
-    a rule can belong to multiple degrees. In that case, changing a rule on one degree would
-    also change it on the other degrees.
+    Rules are deduplicated, meaning that a rule can belong to multiple degrees.
+    In that case, changing a rule on one degree would also change it on the
+    other degrees it is associated with.
     """
 
     title = models.CharField(
@@ -153,8 +172,8 @@ class Rule(models.Model):
         on_delete=models.CASCADE,
         help_text=dedent(
             """
-            This rule's parent Rule if it has one. Null if this is a top level rule
-            (i.e., this rule belongs to some Degree's `.rules` set).
+            This rule's parent Rule if it has one. Null if this is a root rule
+            (i.e., this rule is some degree's `.rule` root rule)
             """
         ),
         related_name="children",
@@ -255,44 +274,6 @@ class DegreePlan(models.Model):
                     bfs_queue.append(child)
         return fulfillments
 
-    def check_satisfactions(self) -> bool:
-        """
-        Returns True if for each Rule in this DegreePlan's Degree, there is a SatisfactionStatus for
-        this DegreePlan/Rule combination is satisfied.
-        """
-        top_level_rules = Rule.objects.filter(degrees__in=self.degrees)
-        for rule in top_level_rules:
-            status = SatisfactionStatus.objects.filter(degree_plan=self, rule=rule).first()
-            if not status.satisfied:
-                return False
-        return True
-
-    def evaluate_rules(self, rules: list[Rule]) -> tuple[set[Rule], set[DoubleCountRestriction]]:
-        """
-        Evaluates this DegreePlan with respect to the given Rules. Returns a set of satisfied Rules
-        and a list of DoubleCountRestrictions violated as a tuple.
-
-        If a Rule is a part of a violated DoubleCountRestriction, it can still be fulfilled.
-        """
-
-        satisfied_rules = set()
-        violated_dcrs = set()
-
-        relevant_dcrs = DoubleCountRestriction.objects.filter(
-            Q(rule__in=rules) | Q(other_rule__in=rules)
-        ).all()
-        for dcr in relevant_dcrs:
-            if dcr.is_double_count_violated(self):
-                violated_dcrs.add(dcr)
-
-        for rule in rules:
-            rule_fulfillments = self.get_rule_fulfillments(rule)
-            full_codes = [fulfillment.full_code for fulfillment in rule_fulfillments]
-            if rule.evaluate(full_codes):
-                satisfied_rules.add(rule)
-
-        return (satisfied_rules, violated_dcrs)
-
 
 class Fulfillment(models.Model):
     degree_plan = models.ForeignKey(
@@ -381,11 +362,12 @@ def update_satisfaction_statuses(sender, instance, action, pk_set, **kwargs):
 
     if action == "post_add" or action == "post_remove" or action == "post_clear":
         degree_plan = instance.degree_plan
-        for rule in degree_plan.degree.rules.all():
+        full_codes = Fulfillment.objects.filter(degree_plan=degree_plan).values_list(
+            "full_code", flat=True
+        )
+        for rule in Rule.objects.filter(degrees__in=degree_plan.degrees.all()):
             status, _ = SatisfactionStatus.objects.get_or_create(degree_plan=degree_plan, rule=rule)
-            status.satisfied = rule.evaluate(
-                [fulfillment.full_code for fulfillment in degree_plan.fulfillments.all()]
-            )
+            status.satisfied = rule.evaluate(full_codes)
             status.save()
 
 
@@ -490,7 +472,4 @@ class DoubleCountRestriction(models.Model):
         if intersection_cus is None:
             intersection_cus = 0
 
-        if self.max_credits and intersection_cus > self.max_credits:
-            return True
-
-        return False
+        return self.max_credits and intersection_cus > self.max_credits

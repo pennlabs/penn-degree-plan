@@ -114,7 +114,7 @@ const LayoutFlow = () => {
 
       const nodes = [];
       const edges = [];
-      const stack = degree.rules.slice();
+      const stack = [degree.rule];
       while (stack.length > 0) {
         const rule = stack.pop();
         const id = `r${rule.id}`;

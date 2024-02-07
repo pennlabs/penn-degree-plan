@@ -318,7 +318,8 @@ def parse_degreeworks(json: dict, degree: Degree, interactive=False) -> list[Rul
     Note that this method creates rule objects but does not save them.
     """
     blockArray = json.get("blockArray")
-    rules = []
+    root = Rule()
+    rules = [root]
 
     for requirement in blockArray:
         degree_req = Rule(
@@ -326,6 +327,7 @@ def parse_degreeworks(json: dict, degree: Degree, interactive=False) -> list[Rul
             # TODO: use requirement code?
             credits=None,
             num=None,
+            parent=root,
         )
         rules.append(degree_req)
         parse_rulearray(
@@ -350,7 +352,4 @@ def parse_and_save_degreeworks(json: dict, degree: Degree, interactive=False) ->
                 rule.num is not None or rule.credits is not None
             ), "Rule has no num or credits but has a query"
         rule.save()
-    top_level_rules = [rule for rule in rules if rule.parent is None]
-    for rule in top_level_rules:
-        rule.refresh_from_db()
-        degree.rules.add(rule)
+        degree.all_rules.add(rule)

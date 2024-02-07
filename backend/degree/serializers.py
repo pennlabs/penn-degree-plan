@@ -33,8 +33,16 @@ class DoubleCountRestrictionSerializer(serializers.ModelSerializer):
 
 
 class DegreeDetailSerializer(serializers.ModelSerializer):
-    rules = RuleSerializer(many=True, read_only=True)
-    double_count_restrictions = DoubleCountRestrictionSerializer(many=True, read_only=True)
+    rule = RuleSerializer(read_only=True)
+    double_count_restrictions = serializers.SerializerMethodField()
+
+    def get_double_count_restrictions(self, obj):
+        restrictions = DoubleCountRestriction.objects.filter(
+            Q(rule__degrees=obj) | Q(other_rule__degrees=obj)
+        )
+        return DoubleCountRestrictionSerializer(
+            instance=restrictions, many=True, read_only=True
+        ).data
 
     class Meta:
         model = Degree
@@ -74,13 +82,19 @@ class FulfillmentSerializer(serializers.ModelSerializer):
             return data  # Nothing to validate
         if rules is None:
             rules = self.instance.rules.all()
+
         if full_code is None:
             full_code = self.instance.full_code
         if degree_plan is None:
             degree_plan = self.instance.degree_plan
 
-        # TODO: check that rules belong to this degree plan
+        degree_plan_rules = Rule.objects.filter(degrees__in=degree_plan.degrees.all())
+
         for rule in rules:
+            if rule not in degree_plan_rules:
+                raise serializers.ValidationError(
+                    f"Rule {rule.id} is not in degree plan {degree_plan.id}"
+                )
             if not Course.objects.filter(rule.get_q_object(), full_code=full_code).exists():
                 raise serializers.ValidationError(
                     f"Course {full_code} does not satisfy rule {rule.id}"

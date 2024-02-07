@@ -26,7 +26,7 @@ class DoubleCountRestrictionAdmin(admin.ModelAdmin):
 
 @admin.register(Degree)
 class DegreeAdmin(admin.ModelAdmin):
-    autocomplete_fields = ["rules"]
+    readonly_fields = ["all_rules", "rule"]
     list_display = ["program", "degree", "major", "concentration", "year", "view_degree_editor"]
 
     def view_degree_editor(self, obj):
