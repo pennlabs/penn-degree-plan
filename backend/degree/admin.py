@@ -27,9 +27,9 @@ class DoubleCountRestrictionAdmin(admin.ModelAdmin):
 @admin.register(Degree)
 class DegreeAdmin(admin.ModelAdmin):
     readonly_fields = ["all_rules", "rule"]
-    list_display = ["program", "degree", "major", "concentration", "year", "view_degree_editor"]
+    list_display = ["program", "degree", "major", "concentration", "year", "degree_editor"]
 
-    def view_degree_editor(self, obj):
+    def degree_editor(self, obj):
         return format_html(
             '<a href="{url}?id={id}">View in Degree Editor</a>',
             id=obj.id,
@@ -42,12 +42,12 @@ class DegreeAdmin(admin.ModelAdmin):
         custom_urls = [
             url(
                 r"^degree-editor/$",
-                self.admin_site.admin_view(self.degree_editor),
+                self.admin_site.admin_view(self.degree_editor_view),
                 name="degree-editor",
             )
         ]
         return custom_urls + urls
 
-    def degree_editor(self, request):
+    def degree_editor_view(self, request):
         context = dict(self.admin_site.each_context(request))
         return TemplateResponse(request, "degree-editor.html", context)

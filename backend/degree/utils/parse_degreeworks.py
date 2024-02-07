@@ -318,7 +318,7 @@ def parse_degreeworks(json: dict, degree: Degree, interactive=False) -> list[Rul
     Note that this method creates rule objects but does not save them.
     """
     blockArray = json.get("blockArray")
-    root = Rule()
+    root = Rule(title="Root")
     rules = [root]
 
     for requirement in blockArray:
@@ -343,9 +343,13 @@ def parse_degreeworks(json: dict, degree: Degree, interactive=False) -> list[Rul
 def parse_and_save_degreeworks(json: dict, degree: Degree, interactive=False) -> None:
     """
     Parses a DegreeWorks JSON audit and saves the rules to the database.
+    
+    Assumes the degree is not yet saved.
     """
-    degree.save()
     rules = parse_degreeworks(json, degree, interactive=interactive)
+    degree.rule = rules.pop(0) # root rule
+    degree.rule.save()
+    degree.save()
     for rule in rules:
         if rule.q:
             assert (

@@ -84,7 +84,6 @@ class Command(BaseCommand):
                     concentration=concentration,
                     year=year,
                 )
-                degree.save()
 
                 with open(path.join(directory, degree_file)) as f:
                     degree_json = json.load(f)
