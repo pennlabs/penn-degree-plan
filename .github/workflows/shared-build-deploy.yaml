@@ -21,7 +21,7 @@ jobs:
     uses: pennlabs/shared-actions/.github/workflows/docker-publish.yaml@v0.1
     with:
       # Inputs
-      imageName: "penn-courses-backend"
+      imageName: "penn-degree-plan-backend"
       githubRef: ${{ github.ref }}
       gitSha: ${{ github.sha }}
 
@@ -52,7 +52,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        product: [review, plan, alert]
+        product: [degree-plan]
     with:
       path: frontend/${{ matrix.product }}
 
@@ -61,7 +61,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        product: [{name: pcr, path: review}, {name: pcp, path: plan}, {name: pca, path: alert}]
+        product: [{name: pcr, path: review}, {name: pcp, path: plan}, {name: pca, path: alert}, {name: pdp, path: degree-plan}]
     with:
       # Inputs
       imageName: "${{ matrix.product.name }}-frontend"
@@ -88,26 +88,26 @@ jobs:
 
   # Landing
   # ========================================================================================================
-  publish-landing:
-      uses: pennlabs/shared-actions/.github/workflows/docker-publish.yaml@v0.1
-      with:
-        # Inputs
-        imageName: "pcx-landing"
-        githubRef: ${{ github.ref }}
-        gitSha: ${{ github.sha }}
+  # publish-landing:
+  #     uses: pennlabs/shared-actions/.github/workflows/docker-publish.yaml@v0.1
+  #     with:
+  #       # Inputs
+  #       imageName: "pcx-landing"
+  #       githubRef: ${{ github.ref }}
+  #       gitSha: ${{ github.sha }}
         
-        # Path to the docker context
-        path: frontend/landing
+  #       # Path to the docker context
+  #       path: frontend/landing
         
-        # Path to the dockerfile (relative to `path` variable)
-        dockerfile: Dockerfile
+  #       # Path to the dockerfile (relative to `path` variable)
+  #       dockerfile: Dockerfile
         
-        # If enabled, will cache_from the latest version of the docker image.
-        cache: true
+  #       # If enabled, will cache_from the latest version of the docker image.
+  #       cache: true
       
-      secrets: 
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+  #     secrets: 
+  #       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  #       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
   # ========================================================================================================
 
   # Deploy
