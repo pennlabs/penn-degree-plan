@@ -1,14 +1,13 @@
 import { Construct } from 'constructs';
 import { App } from 'cdk8s';
-import { CronJob, DjangoApplication, PennLabsChart, ReactApplication, RedisApplication } from '@pennlabs/kittyhawk';
+import { DjangoApplication, PennLabsChart, ReactApplication, RedisApplication } from '@pennlabs/kittyhawk';
 
-const cronTime = require('cron-time-generator');
 
 export class MyChart extends PennLabsChart {
   constructor(scope: Construct) {
     super(scope);
 
-    const backendImage = 'pennlabs/penn-courses-backend';
+    const backendImage = 'pennlabs/penn-degree-plan-backend';
     const secret = 'penn-courses';
     const ingressProps = {
       annotations: {
@@ -56,48 +55,12 @@ export class MyChart extends PennLabsChart {
       domains: [{ host: 'penncoursereview.com', paths: ["/api/ws"] }],
     });
 
-    new ReactApplication(this, 'landing', {
+    new ReactApplication(this, 'degree-plan', {
       deployment: {
-        image: 'pennlabs/pcx-landing',
+        image: 'pennlabs/pdp-frontend',
       },
-      domain: { host: 'penncourses.org', paths: ['/'] },
+      domain: { host: 'penndegreeplan.com', paths: ['/'] },
     });
-
-    new ReactApplication(this, 'plan', {
-      deployment: {
-        image: 'pennlabs/pcp-frontend',
-      },
-      domain: { host: 'penncourseplan.com', paths: ['/'] },
-    });
-
-    new ReactApplication(this, 'alert', {
-      deployment: {
-        image: 'pennlabs/pca-frontend',
-      },
-      domain: { host: 'penncoursealert.com', paths: ['/'] },
-    });
-
-    new ReactApplication(this, 'review', {
-      deployment: {
-        image: 'pennlabs/pcr-frontend',
-      },
-      domain: { host: 'penncoursereview.com', paths: ['/'] },
-    });
-
-    new CronJob(this, 'load-courses', {
-      schedule: cronTime.everyDayAt(3),
-      image: backendImage,
-      secret,
-      cmd: ['python', 'manage.py', 'registrarimport'],
-    });
-
-    new CronJob(this, 'report-stats', {
-      schedule: cronTime.everyDayAt(20),
-      image: backendImage,
-      secret,
-      cmd: ['python', 'manage.py', 'alertstats', '1', '--slack'],
-    });
-
   }
 }
 
